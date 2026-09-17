@@ -1,0 +1,19 @@
+(ip_tls) {
+  tls {
+    issuer acme {
+      profile shortlived
+    }
+  }
+}
+https://{$PUBLIC_IP} {
+  import ip_tls
+  encode zstd gzip
+  reverse_proxy dashboard:8090
+}
+https://{$PUBLIC_IP}:8443 {
+  import ip_tls
+  encode zstd gzip
+  reverse_proxy sub2api:8080 {
+    flush_interval -1
+  }
+}
