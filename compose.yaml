@@ -1,0 +1,99 @@
+name: relay
+services:
+  dashboard:
+    build: .
+    restart: unless-stopped
+    environment:
+      ADMIN_PASSWORD: ${DASHBOARD_ADMIN_PASSWORD:?required}
+      VIEWER_PASSWORD: ${VIEWER_PASSWORD:?required}
+      SESSION_SECRET: ${SESSION_SECRET:?required}
+      SUB2API_ADMIN_KEY: ${SUB2API_ADMIN_KEY:-}
+      SUB2API_URL: http://sub2api:8080
+      GATEWAY_PUBLIC_URL: https://${GATEWAY_DOMAIN}
+      COOKIE_SECURE: "true"
+      POLL_SECONDS: "60"
+    volumes: ["ledger:/data"]
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8090/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  sub2api:
+    image: ${SUB2API_IMAGE:-ghcr.io/wei-shaw/sub2api:latest}
+    restart: unless-stopped
+    environment:
+      AUTO_SETUP: "true"
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: "8080"
+      SERVER_MODE: release
+      DATABASE_HOST: postgres
+      DATABASE_PORT: "5432"
+      DATABASE_USER: sub2api
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      DATABASE_DBNAME: sub2api
+      DATABASE_SSLMODE: disable
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      ADMIN_EMAIL: ${SUB2API_ADMIN_EMAIL:-admin@relay.local}
+      ADMIN_PASSWORD: ${SUB2API_ADMIN_PASSWORD:?required}
+      JWT_SECRET: ${JWT_SECRET:?required}
+      TOTP_ENCRYPTION_KEY: ${TOTP_ENCRYPTION_KEY:?required}
+      TZ: Asia/Shanghai
+    volumes: ["sub2api:/app/data"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-T", "5", "-O", "/dev/null", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 3
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sub2api
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      POSTGRES_DB: sub2api
+      PGDATA: /var/lib/postgresql/data
+    volumes: ["postgres:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sub2api -d sub2api"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: ["redis:/data"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      DASHBOARD_DOMAIN: ${DASHBOARD_DOMAIN:?required}
+      GATEWAY_DOMAIN: ${GATEWAY_DOMAIN:?required}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy:/data
+      - caddy_config:/config
+    depends_on: [dashboard, sub2api]
+volumes:
+  ledger:
+  sub2api:
+  postgres:
+  redis:
+  caddy:
+  caddy_config:
