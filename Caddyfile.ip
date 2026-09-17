@@ -16,6 +16,7 @@ https://{$PUBLIC_IP} {
 https://{$PUBLIC_IP}:8443 {
   import ip_tls
   encode zstd gzip
+  respond /api/v1/auth/register "Private shared instance" 403
   reverse_proxy sub2api:8080 {
     flush_interval -1
   }

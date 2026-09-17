@@ -3,6 +3,7 @@ import json
 import os
 import subprocess
 import urllib.request
+import urllib.error
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
@@ -21,8 +22,13 @@ def call(endpoint, method='GET', data=None):
         headers['Authorization'] = 'Bearer '+token
     req = urllib.request.Request(base+endpoint,method=method,headers=headers,
         data=json.dumps(data).encode() if data is not None else None)
-    with urllib.request.urlopen(req,timeout=60) as r:
-        obj=json.load(r)
+    try:
+        with urllib.request.urlopen(req,timeout=60) as r:
+            obj=json.load(r)
+    except urllib.error.HTTPError as exc:
+        if exc.code == 423:
+            raise SystemExit('请先在 sub2api 管理台阅读并自行确认首次部署承诺，然后重新运行 bootstrap.py。') from None
+        raise SystemExit('Bootstrap API failed: HTTP '+str(exc.code)+' '+endpoint) from None
     if obj.get('code') != 0:
         raise SystemExit('Bootstrap API failed: '+endpoint)
     return obj['data']
