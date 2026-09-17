@@ -36,6 +36,8 @@ services:
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?required}
       DATABASE_DBNAME: sub2api
       DATABASE_SSLMODE: disable
+      DATABASE_MAX_OPEN_CONNS: "40"
+      DATABASE_MAX_IDLE_CONNS: "10"
       REDIS_HOST: redis
       REDIS_PORT: "6379"
       ADMIN_EMAIL: ${SUB2API_ADMIN_EMAIL:-admin@relay.local}

@@ -14,7 +14,7 @@ env = {'DASHBOARD_DOMAIN': dashboard, 'GATEWAY_DOMAIN': gateway,
        'SUB2API_IMAGE': 'ghcr.io/wei-shaw/sub2api:latest'}
 for key in ('DASHBOARD_ADMIN_PASSWORD','VIEWER_PASSWORD','SESSION_SECRET',
             'POSTGRES_PASSWORD','SUB2API_ADMIN_PASSWORD','JWT_SECRET','TOTP_ENCRYPTION_KEY'):
-    env[key] = secrets.token_hex(24)
+    env[key] = secrets.token_hex(32)
 fd = os.open(path, os.O_WRONLY|os.O_CREAT|os.O_EXCL, 0o600)
 with os.fdopen(fd, 'w') as f:
     f.write(''.join(k+'='+v+'\n' for k,v in env.items()))
