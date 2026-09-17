@@ -35,7 +35,21 @@ docker compose up -d --build
 
 `.env` 自动生成随机独立密码，权限 0600，不提交 Git。管理员可在服务器本地查看该文件：`DASHBOARD_ADMIN_PASSWORD` 是账本管理密码，`VIEWER_PASSWORD` 是朋友查看比例的密码，`SUB2API_ADMIN_PASSWORD` 是中转管理密码。只把查看密码给朋友；不要分享上游 OAuth、管理密码或管理 API Key。
 
-初始化 sub2api 后运行 `scripts/bootstrap.py`（脚本在 dashboard 容器内连接内网），自动关闭公开注册并生成供账本使用的管理 API Key；见脚本帮助。然后重建 dashboard 服务使环境变量生效。
+首次登录 sub2api，阅读并自行确认它的部署承诺；在确认前管理 API 会返回 HTTP 423。之后在 Docker 主机上运行 `python3 scripts/bootstrap.py`，自动关闭公开注册并生成供账本使用的管理 API Key，再运行 `docker compose up -d --no-deps dashboard`。脚本只通过 Docker 内网连接服务，不打印密码或密钥。反向代理同时拒绝公开注册接口。
+
+### 无域名：IP HTTPS
+
+本次腾讯云部署使用 `https://129.211.211.114`（出资页面）和 `https://129.211.211.114:8443`（sub2api）。需要开放 TCP 80、443、8443。`.env` 增加：
+
+```dotenv
+CADDY_CONFIG=Caddyfile.ip
+PUBLIC_IP=129.211.211.114
+GATEWAY_PUBLIC_URL=https://129.211.211.114:8443
+```
+
+Caddy 显式使用 Let's Encrypt `shortlived` ACME profile 签发并自动续期 IP 证书，配置了无 SNI 客户端的默认证书。证书是公网可信证书，不需要忽略浏览器警告。保留 Caddy 数据卷及 80/443 入站。修改 Caddy 配置文件后执行 `docker compose up -d --force-recreate --no-deps caddy`，确保文件挂载与配置都更新。
+
+服务器拉取镜像较慢时，可在网络可用的机器上运行 `python scripts/export_image.py sub2api.tar`，把镜像传到服务器后 `docker load -i sub2api.tar`。该脚本只从官方 GHCR 拉取并逐个校验 blob SHA-256。不可把 `.env` 或凭据文件打包进镜像或 Git。
 
 在 sub2api 管理台完成：
 
