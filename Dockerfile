@@ -1,5 +1,5 @@
 FROM python:3.13-alpine
-RUN apk add --no-cache tzdata && adduser -D -u 10001 relay
+RUN adduser -D -u 10001 relay
 WORKDIR /app
 COPY app /app
 RUN mkdir /data && chown relay:relay /data

@@ -12,7 +12,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from billing import shares, allocate
@@ -155,8 +155,7 @@ def sample(cycle, rebaseline=False):
             raise ValueError('周期不存在或已经封账')
         c = dict(c)
         # Dates are local calendar dates, inclusive, matching sub2api stats API.
-        from zoneinfo import ZoneInfo
-        today = datetime.now(ZoneInfo('Asia/Shanghai')).date().isoformat()
+        today = datetime.now(timezone(timedelta(hours=8))).date().isoformat()
         if not c['start'] <= today <= c['end']:
             raise ValueError('当前时间不在该订阅月内；历史周期请人工核对后封账')
         members, usage, resets = ledger(db, cycle)

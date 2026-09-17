@@ -52,7 +52,7 @@ docker compose up -d --build
 
 ## 开发与校验
 
-后端仅使用 Python 标准库，前端为原生 HTML/CSS/JS。容器安装 tzdata 以支持上海时区。
+后端仅使用 Python 标准库，前端为原生 HTML/CSS/JS。订阅日历按当前上海时区 UTC+8 处理，构建无需下载额外依赖。
 
 ```sh
 python -m unittest discover -s tests -v
