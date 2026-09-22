@@ -1,0 +1,33 @@
+# Copy to mihomo/config.yaml on the server and set the subscription URL.
+# mihomo/config.yaml holds the private subscription link and is git-ignored.
+mixed-port: 7890
+allow-lan: true
+bind-address: "*"
+# Reachable from the host only (via the container IP) for switching nodes.
+external-controller: 0.0.0.0:9090
+mode: rule
+log-level: warning
+profile:
+  store-selected: true
+
+proxy-providers:
+  sub:
+    type: http
+    url: REPLACE_WITH_SUBSCRIPTION_URL
+    interval: 86400
+    path: ./providers/sub.yaml
+    health-check: {enable: true, url: "https://www.gstatic.com/generate_204", interval: 300}
+
+proxy-groups:
+  # select (not url-test): most nodes are CUT by OpenAI; pin a verified one and
+  # it stays across restarts. Test with scripts/find_openai_node.py.
+  - name: PROXY
+    type: select
+    use: [sub]
+    # OpenAI refuses Hong Kong/Macau exits; keep only supported regions.
+    exclude-filter: "(?i)香港|港|hongkong|hong kong|澳门|macau|🇭🇰|🇲🇴"
+    url: "https://www.gstatic.com/generate_204"
+    interval: 300
+
+rules:
+  - MATCH,PROXY
