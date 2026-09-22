@@ -70,6 +70,13 @@ services:
       - caddy:/data
       - caddy_config:/config
     depends_on: [sub2api]
+  # Outbound proxy for OpenAI (region-blocks mainland IPs). Needs mihomo/config.yaml
+  # (git-ignored; copy from config.example.yaml and set the subscription URL).
+  mihomo:
+    image: ${MIHOMO_IMAGE:-metacubex/mihomo:latest}
+    restart: unless-stopped
+    volumes: ["./mihomo:/root/.config/mihomo"]
+    ports: ["127.0.0.1:7890:7890"]
 volumes:
   sub2api:
   postgres:

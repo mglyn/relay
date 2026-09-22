@@ -38,6 +38,14 @@ GET /api/v1/admin/accounts?page=1&page_size=100
 
 接口以实际部署版本为准,升级镜像后应重新核验。
 
+## 上游代理(OpenAI 地区限制)
+
+腾讯云大陆 IP 直连 OpenAI 会在 OAuth 换 token 时收到 403 `unsupported_country_region_territory`。本仓库的 compose 内置 mihomo 出站代理解决此问题:
+
+1. 复制 `mihomo/config.example.yaml` 为服务器上的 `mihomo/config.yaml`,填入你的机场订阅链接(该文件含隐私,已被 Git 忽略)。过滤规则自动排除香港/澳门出口(OpenAI 同样不支持这两个地区)。
+2. `docker compose up -d mihomo`,用 `curl -x http://127.0.0.1:7890 https://api.openai.com/v1/models` 验证(返回 401 即地区可用)。
+3. 在 sub2api 管理台「代理管理」添加 HTTP 代理 `mihomo:7890`,并在导入/编辑 OpenAI 上游账号时绑定它——OAuth 换 token、后续刷新与 API 请求都会走这个代理。
+
 ## 上线步骤(管理台内)
 
 1. 导入/授权你自己的 Pro 上游账号(不要把 OAuth token 发到聊天或 Git)。
