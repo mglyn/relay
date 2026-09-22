@@ -8,10 +8,10 @@
     }
   }
 }
+# 443 keeps the ACME renewal path for the IP certificate; nothing is served here.
 https://{$PUBLIC_IP} {
   import ip_tls
-  encode zstd gzip
-  reverse_proxy dashboard:8090
+  respond 410
 }
 https://{$PUBLIC_IP}:8443 {
   import ip_tls

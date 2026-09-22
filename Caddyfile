@@ -1,7 +1,3 @@
-{$DASHBOARD_DOMAIN} {
-  encode zstd gzip
-  reverse_proxy dashboard:8090
-}
 {$GATEWAY_DOMAIN} {
   encode zstd gzip
   respond /api/v1/auth/register "Private shared instance" 403

@@ -1,27 +1,5 @@
 name: relay
 services:
-  dashboard:
-    build: .
-    restart: unless-stopped
-    environment:
-      ADMIN_PASSWORD: ${DASHBOARD_ADMIN_PASSWORD:?required}
-      VIEWER_PASSWORD: ${VIEWER_PASSWORD:?required}
-      SESSION_SECRET: ${SESSION_SECRET:?required}
-      SUB2API_ADMIN_KEY: ${SUB2API_ADMIN_KEY:-}
-      SUB2API_URL: http://sub2api:8080
-      GATEWAY_PUBLIC_URL: ${GATEWAY_PUBLIC_URL:-https://${GATEWAY_DOMAIN}}
-      COOKIE_SECURE: "true"
-      POLL_SECONDS: "60"
-    volumes: ["ledger:/data"]
-    read_only: true
-    tmpfs: [/tmp]
-    security_opt: ["no-new-privileges:true"]
-    cap_drop: [ALL]
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8090/health')"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
   sub2api:
     image: ${SUB2API_IMAGE:-ghcr.io/wei-shaw/sub2api:latest}
     restart: unless-stopped
@@ -85,16 +63,14 @@ services:
     restart: unless-stopped
     ports: ["80:80", "443:443", "443:443/udp", "8443:8443"]
     environment:
-      DASHBOARD_DOMAIN: ${DASHBOARD_DOMAIN:?required}
-      GATEWAY_DOMAIN: ${GATEWAY_DOMAIN:?required}
       PUBLIC_IP: ${PUBLIC_IP:-}
+      GATEWAY_DOMAIN: ${GATEWAY_DOMAIN:-}
     volumes:
       - ./${CADDY_CONFIG:-Caddyfile}:/etc/caddy/Caddyfile:ro
       - caddy:/data
       - caddy_config:/config
-    depends_on: [dashboard, sub2api]
+    depends_on: [sub2api]
 volumes:
-  ledger:
   sub2api:
   postgres:
   redis:
