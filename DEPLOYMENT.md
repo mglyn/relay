@@ -7,7 +7,7 @@
 - `.env` 位于服务器项目根目录,权限 0600;本地登录凭据位于 `data/credentials.txt`(被 Git 忽略)。
 - sub2api v0.2.5,部署镜像固定为 `ghcr.io/wei-shaw/sub2api@sha256:4c5dffab6e5ba4d3bd5382f19aad9654847b4e23de1a3d48e190146a3e6eb977`。
 - 2026-09-22 已执行 `scripts/bootstrap.py`:公开注册已关闭,`SUB2API_ADMIN_KEY` 已生成。
-- 出站代理:compose 内 `mihomo` 服务,配置在 `/opt/relay/mihomo/config.yaml`(含机场订阅链接,权限 600,不提交 Git)。sub2api 上游账号绑定管理台里的 HTTP 代理 `mihomo:7890` 后即可通过 OpenAI 的地区检查。
+- 出站代理:compose 内 `mihomo` 服务,配置在 `/opt/relay/mihomo/config.yaml`(含机场订阅链接,权限 600,不提交 Git)。管理台已注册 HTTP 代理 `Mihomo`(mihomo:7890);导入 OpenAI 上游账号时选择它。节点经 `scripts/find_openai_node.py` 实测,当前钉住 `🇨🇳 B1019 台湾家宽`(多数节点会被 OpenAI 掐断 TLS);切换节点用 mihomo 控制接口(容器 IP:9090,`PUT /proxies/PROXY`),选择已持久化,重启不丢。
 - `relay_ledger` 数据卷已无用途,留在服务器上未删(内容为空),可手动 `docker volume rm relay_ledger`。
 
 ## 尚需账号持有人完成
